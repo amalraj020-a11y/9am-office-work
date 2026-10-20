@@ -15,11 +15,12 @@
       "Urgency level",
       "Missing details"
     ],
-    "processing": "Automated qualification of callback and booking enquiries based on predefined criteria for repair type, city, urgency, and missing details",
+    "processing": "Automated qualification rules engine that filters and categorizes enquiries based on predefined criteria (repair type, city, urgency, missing details) to determine appropriate next steps",
     "outputs": [
-      "Automated qualification status",
-      "Qualified enquiries for callback/booking"
+      "Qualified enquiries for callback",
+      "Qualified enquiries for booking",
+      "Enquiries requiring additional details"
     ],
-    "business_value": "Reduces manual qualification time, improves accuracy of enquiry handling, and increases conversion rates for callback and booking by automating the qualification process"
+    "business_value": "Reduces manual qualification time, improves enquiry conversion rates, ensures accurate booking and callback routing, and increases operational efficiency without requiring new app development"
   }
 }

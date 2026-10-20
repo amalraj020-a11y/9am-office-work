@@ -1,6 +1,6 @@
 # Amala — Autonomous 9 AM Office Workflow
 
-Amala is Multimax's automated AI office employee. OpenClaw starts this workflow every day at **9:00 AM Asia/Kolkata**. It researches the configured business opportunity, uses local AI to prepare an automation plan, builds and tests a small Python prototype, saves a report, and publishes the successful run to this private repository.
+Amala is Multimax's new intern automated AI office employee. OpenClaw starts this workflow every day at **9:00 AM Asia/Kolkata**. It researches the configured business opportunity, uses local AI to prepare an automation plan, builds and tests a small Python prototype, saves a report, and publishes the successful run to this private repository.
 
 The workflow has a **₹0 paid-API budget**. It uses local Ollama models and does not activate paid AI services. Normal electricity, internet, and account-provider usage still apply.
 

@@ -1,0 +1,25 @@
+{
+  "business": {
+    "name": "MobileMistri",
+    "url": "https://www.mobilemistri.com/",
+    "email": "info@mobilemistri.com"
+  },
+  "modelUsed": "qwen3:4b",
+  "modelErrors": [],
+  "analysis": {
+    "problem_hypothesis": "Callback and booking enquiries may need manual qualification by repair type, city, urgency, and missing details",
+    "solution": "Enquiry-qualification automation for callback and booking enquiries without requiring a new consumer mobile app",
+    "inputs": [
+      "Repair type",
+      "City",
+      "Urgency level",
+      "Missing details"
+    ],
+    "processing": "Automated qualification of callback and booking enquiries based on predefined criteria for repair type, city, urgency, and missing details",
+    "outputs": [
+      "Automated qualification status",
+      "Qualified enquiries for callback/booking"
+    ],
+    "business_value": "Reduces manual qualification time, improves accuracy of enquiry handling, and increases conversion rates for callback and booking by automating the qualification process"
+  }
+}

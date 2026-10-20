@@ -1,6 +1,6 @@
 # Amala — Autonomous 9 AM Office Workflow
 
-Amala is Multimax's new intern automated AI office employee. OpenClaw starts this workflow every day at **9:00 AM Asia/Kolkata**. It researches the configured business opportunity, uses local AI to prepare an automation plan, builds and tests a small Python prototype, saves a report, and publishes the successful run to this private repository.
+Amala is Multimax's new intern and automated AI office employee. OpenClaw starts this workflow every day at **9:00 AM Asia/Kolkata**. It researches the configured business opportunity, uses local AI to prepare an automation plan, builds and tests a small Python prototype, saves a report, and publishes the successful run to this repository.
 
 The workflow has a **₹0 paid-API budget**. It uses local Ollama models and does not activate paid AI services. Normal electricity, internet, and account-provider usage still apply.
 
@@ -46,7 +46,7 @@ No customer production data is used, and this repository is not a production dep
 | Node.js | Executes `amala_office.mjs` and coordinates the workflow. | Local runtime |
 | Python `unittest` | Builds and verifies the prototype. | Local runtime |
 | Git | Versions every successful daily run. | Free/local |
-| GitHub | Stores the private daily archive in this repository. | Free account features |
+| GitHub | Stores the public daily archive in this repository. | Free account features |
 | WhatsApp through OpenClaw | Receives the configured completion report when the channel is connected. | No paid AI API enabled |
 
 Gmail and Google Sheets were exercised during the controlled setup test. They are **not called by `amala_office.mjs` in every scheduled run**, so the daily report must not claim they were updated unless OpenClaw separately verifies those actions.
@@ -56,7 +56,7 @@ Groq is not required by this workflow and is not enabled as a paid fallback. The
 ## Repository structure
 
 ```text
-amala-9am-office-work/
+9am-office-work/
 ├── amala_office.mjs       # Daily workflow orchestrator
 ├── run-log.jsonl          # PASS/FAIL execution records
 ├── prototype.gitignore    # Prototype ignore rules
@@ -104,9 +104,9 @@ The latest controlled run is stored in `runs/2026-10-20/`. Its prototype complet
 - Schedule: every day at **9:00 AM Asia/Kolkata (IST)**
 - Primary model: **Ollama `qwen3:4b`**
 - Fallback model: **Ollama `gemma3:1b`**
-- Repository: `amalraj020-a11y/amala-9am-office-work`
+- Repository: `amalraj020-a11y/9am-office-work`
 - Branch: `main`
-- Visibility: private
+- Visibility: public
 - Paid AI/API budget: **₹0**
 
 Successful daily artifacts are committed with a dated message and pushed to this repository. The workflow does not create duplicate schedules or repositories.

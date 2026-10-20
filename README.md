@@ -23,3 +23,7 @@ OpenClaw runs `amala_office.mjs` every day at 9:00 AM Asia/Kolkata. The
 scheduler prints a concise completion report for delivery through the configured
 messaging channel. The local models remain `qwen3:4b` with `gemma3:1b` fallback,
 and no paid API is enabled.
+
+After a successful run, the workflow commits the dated artifacts and pushes
+them to the private `amala-9am-office-work` GitHub repository. A failed model,
+test, commit, or push produces a failed scheduler run instead of a false success.

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PYTHON = "C:\\Users\\SARANYA\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe";
+const GIT = "C:\\Users\\SARANYA\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe";
 const BUSINESS = { name: "MobileMistri", url: "https://www.mobilemistri.com/", email: "info@mobilemistri.com" };
 const BASELINE_ANALYSIS = {
   problem_hypothesis: "Callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details; this is a hypothesis to validate with MobileMistri.",
@@ -140,7 +141,19 @@ async function main() {
   await writeFile(path.join(runDir, "report.md"), report, "utf8");
   await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ day, status: "PASS", business: BUSINESS.name, modelUsed, tests: 3, report: path.join(runDir, "report.md") })}\n`, "utf8");
 
-  console.log(`🤖 Amala — 9 AM Office Workflow PASS\nBusiness: ${BUSINESS.name}\nResearch: official website verified\nProblem: ${analysis.problem_hypothesis}\nSolution: ${analysis.solution}\nModel: Ollama ${modelUsed}\nPrototype tests: 3/3 passed\nOutreach: draft prepared (not sent)\nCost: ₹0\nReport: ${path.join(runDir, "report.md")}`);
+  const gitAdd = spawnSync(GIT, ["add", "--", `runs/${day}`, "run-log.jsonl"], { cwd: HERE, encoding: "utf8", timeout: 60_000 });
+  if (gitAdd.status !== 0) throw new Error(`Git add failed: ${(gitAdd.stderr || gitAdd.stdout).trim()}`);
+  const staged = spawnSync(GIT, ["diff", "--cached", "--quiet"], { cwd: HERE, encoding: "utf8", timeout: 60_000 });
+  if (staged.status === 1) {
+    const commit = spawnSync(GIT, ["commit", "-m", `Add Amala office report ${day}`], { cwd: HERE, encoding: "utf8", timeout: 120_000 });
+    if (commit.status !== 0) throw new Error(`Git commit failed: ${(commit.stderr || commit.stdout).trim()}`);
+    const push = spawnSync(GIT, ["push", "origin", "main"], { cwd: HERE, encoding: "utf8", timeout: 180_000 });
+    if (push.status !== 0) throw new Error(`GitHub push failed: ${(push.stderr || push.stdout).trim()}`);
+  } else if (staged.status !== 0) {
+    throw new Error(`Git staged-change check failed: ${(staged.stderr || staged.stdout).trim()}`);
+  }
+
+  console.log(`🤖 Amala — 9 AM Office Workflow PASS\nBusiness: ${BUSINESS.name}\nResearch: official website verified\nProblem: ${analysis.problem_hypothesis}\nSolution: ${analysis.solution}\nModel: Ollama ${modelUsed}\nPrototype tests: 3/3 passed\nOutreach: draft prepared (not sent)\nGitHub: daily artifacts committed and pushed\nCost: ₹0\nReport: ${path.join(runDir, "report.md")}`);
 }
 
 main().catch(async (error) => {

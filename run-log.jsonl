@@ -3,3 +3,5 @@
 {"day":"2026-10-20","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-20\\report.md"}
 {"day":"2026-10-22","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-22\\report.md"}
 {"day":"2026-10-23","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-23\\report.md"}
+{"at":"2026-10-24T07:02:45.675Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: fetch failed; gemma3:1b: fetch failed"}
+{"day":"2026-10-25","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-25\\report.md"}

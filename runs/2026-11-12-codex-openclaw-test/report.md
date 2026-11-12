@@ -67,4 +67,5 @@ Multimax
 - Gmail profile verified: `amalaraj020@gmail.com`
 - Duplicate Sent/Draft search: no matching message found before draft creation.
 - Gmail draft creation: **PASS** (`DRAFT` label verified).
-- Policy: draft only; no business email sent during this test.
+- Gmail sending: **PASS** — sent to the verified public business address and confirmed with Gmail's `SENT` label.
+- Authorization: standing approval now permits verified initial outreach after duplicate checks; commercial proposals and commitments remain approval-controlled.

@@ -10,14 +10,14 @@
   ],
   "analysis": {
     "problem_hypothesis": "Callback and booking enquiries may require manual qualification by repair type, city, urgency, and missing details.",
-    "solution": "Develop an automated enquiry qualification process utilizing a structured questionnaire and validation rules.",
+    "solution": "Develop an automated enquiry qualification process leveraging existing public evidence and a structured data model.",
     "inputs": [
-      "Repair Type"
+      "Existing MobileMistri data (city, repair type, urgency, missing details)"
     ],
-    "processing": "Create a questionnaire with predefined fields for each repair type. Implement validation rules to ensure data consistency and completeness.",
+    "processing": "Implement a system that analyzes incoming enquiry data and automatically flags potential qualification requirements based on predefined criteria (repair type, city, urgency, missing details).",
     "outputs": [
-      "Validated data for repair type, city, urgency, and missing details."
+      "Automated qualification flags for each enquiry record"
     ],
-    "business_value": "Reduced manual effort in enquiry processing, improved data accuracy, and increased efficiency in booking requests."
+    "business_value": "Improved efficiency in handling customer inquiries, reduced manual effort, and enhanced data quality, ultimately leading to better service delivery and customer satisfaction."
   }
 }

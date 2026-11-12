@@ -5,3 +5,17 @@
 {"day":"2026-10-23","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-23\\report.md"}
 {"at":"2026-10-24T07:02:45.675Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: fetch failed; gemma3:1b: fetch failed"}
 {"day":"2026-10-25","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-10-25\\report.md"}
+{"at":"2026-10-26T15:42:38.766Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-10-27T12:56:27.520Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-10-28T12:02:55.783Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-10-29T13:09:01.485Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-10-30T13:02:09.717Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-04T15:38:03.989Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: fetch failed; gemma3:1b: fetch failed"}
+{"at":"2026-11-05T19:41:58.835Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-06T12:46:02.213Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-07T15:49:37.782Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-09T07:46:41.923Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-10T13:57:43.587Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-11T12:23:36.812Z","status":"FAIL","error":"Both permitted Ollama models failed: qwen3:4b: Ollama qwen3:4b HTTP 500; gemma3:1b: Ollama gemma3:1b HTTP 500"}
+{"at":"2026-11-12T08:12:23.690Z","status":"FAIL","error":"fetch failed"}
+{"day":"2026-11-12","status":"PASS","business":"MobileMistri","modelUsed":"gemma3:1b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-11-12\\report.md"}

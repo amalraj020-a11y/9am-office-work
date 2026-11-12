@@ -1,0 +1,23 @@
+{
+  "business": {
+    "name": "MobileMistri",
+    "url": "https://www.mobilemistri.com/",
+    "email": "info@mobilemistri.com"
+  },
+  "modelUsed": "gemma3:1b",
+  "modelErrors": [
+    "qwen3:4b: The operation was aborted due to timeout"
+  ],
+  "analysis": {
+    "problem_hypothesis": "Callback and booking enquiries may require manual qualification by repair type, city, urgency, and missing details.",
+    "solution": "Develop an automated enquiry qualification process utilizing a structured questionnaire and validation rules.",
+    "inputs": [
+      "Repair Type"
+    ],
+    "processing": "Create a questionnaire with predefined fields for each repair type. Implement validation rules to ensure data consistency and completeness.",
+    "outputs": [
+      "Validated data for repair type, city, urgency, and missing details."
+    ],
+    "business_value": "Reduced manual effort in enquiry processing, improved data accuracy, and increased efficiency in booking requests."
+  }
+}

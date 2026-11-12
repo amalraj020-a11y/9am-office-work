@@ -1,0 +1,13 @@
+{
+  "business": "HandyMan Service India",
+  "official_website": "https://handymanservice.in/",
+  "public_email": "info@handymanservice.in",
+  "problem_hypothesis": "Multi-category booking requests may require repetitive manual checking for service type, urgency, city or area, preferred time, and missing contact details.",
+  "solution": "A booking-triage assistant that validates required fields, classifies the service and urgency, calculates a priority score, and prepares a draft response for human review.",
+  "inputs": ["name", "mobile", "email", "city or area", "preferred time", "service message"],
+  "processing": ["required-field validation", "service classification", "urgency detection", "priority scoring", "routing"],
+  "outputs": ["structured booking", "missing-field list", "priority score", "review queue", "draft reply"],
+  "expected_value": "Faster and more consistent first-pass booking review while keeping availability, pricing, and final customer communication under human control.",
+  "limitations": ["hypothesis requires validation with the business", "synthetic data only", "no pricing or professional assignment automation", "no production deployment"],
+  "actual_paid_cost_inr": 0
+}

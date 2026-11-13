@@ -23,3 +23,4 @@
 {"day":"2026-11-12","status":"PASS","business":"MobileMistri","modelUsed":"gemma3:1b","tests":3,"report":"C:\\Users\\SARANYA\\.codex\\visualizations\\2026\\10\\19\\01a1549b-ff29-7643-ad32-40e775d97831\\amala-office\\runs\\2026-11-12\\report.md"}
 {"day":"2026-11-12","run":"codex-openclaw-controlled-test","status":"PASS","business":"HandyMan Service India","orchestrator":"OpenAI Codex","localModel":"gemma3:1b fallback after incomplete qwen3:4b review","tests":4,"gmail":"SENT_VERIFIED","costInr":0,"report":"runs/2026-11-12-codex-openclaw-test/report.md"}
 {"day":"2026-11-13","run":"0900-late-run","status":"PARTIAL","business":"Viva Laundry","orchestrator":"OpenAI Codex","openclaw":"UNHEALTHY","ollama":"UNHEALTHY","tests":4,"gmail":"SENT_VERIFIED","costInr":0,"report":"runs/2026-11-13-0900-late-run/report.md"}
+{"runId":"2026-11-13-test-cloud","status":"PASS","business":"EasyLaundry","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-13-test-cloud/report.md"}

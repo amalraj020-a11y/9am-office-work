@@ -1,0 +1,25 @@
+{
+  "runId": "2026-11-13-test-cloud",
+  "business": {
+    "name": "EasyLaundry",
+    "url": "https://easylaundry.in/",
+    "email": "support@easylaundry.in",
+    "identity": [
+      "easy laundry",
+      "laundry"
+    ],
+    "hypothesis": "Partner and customer enquiries may require manual classification by location, request type, urgency, and missing details."
+  },
+  "modelUsed": "qwen3:4b",
+  "modelErrors": [],
+  "sourceFailures": [],
+  "analysis": {
+    "problem_hypothesis": "Partner and customer enquiries may require manual classification by location, request type, urgency, and missing details. This is a hypothesis to validate with the business.",
+    "solution": "An AI-assisted enquiry qualification workflow that extracts the request type, location, urgency, and missing fields, then produces a structured lead and draft follow-up.",
+    "inputs": "Public website enquiry or booking text, customer name and contact details, requested service, location, and preferred date or slot.",
+    "processing": "Validate required fields, classify intent and urgency, extract service and location, detect missing information, and route the enquiry for follow-up.",
+    "outputs": "A structured lead record, priority score, missing-information checklist, routing suggestion, and draft response for review.",
+    "business_value": "Less manual triage, faster follow-up, more consistent records, and fewer incomplete bookings.",
+    "model_quality_note": "qwen3:4b omitted required fields; the evidence-based baseline was used."
+  }
+}

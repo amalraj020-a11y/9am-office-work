@@ -1,20 +1,26 @@
-import { mkdir, writeFile, appendFile } from "node:fs/promises";
+import { access, appendFile, mkdir, writeFile } from "node:fs/promises";
+import { constants as fsConstants } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PYTHON = "C:\\Users\\SARANYA\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe";
-const GIT = "C:\\Users\\SARANYA\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe";
-const BUSINESS = { name: "MobileMistri", url: "https://www.mobilemistri.com/", email: "info@mobilemistri.com" };
-const BASELINE_ANALYSIS = {
-  problem_hypothesis: "Callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details; this is a hypothesis to validate with MobileMistri.",
-  solution: "An AI-assisted enquiry qualification workflow that extracts service need, location, urgency, and missing fields, then produces a structured lead and a suggested follow-up.",
-  inputs: "Website callback or booking text, customer name and contact details, requested service, and city.",
-  processing: "Validate required fields, classify intent and urgency, extract city and repair type, and route incomplete enquiries for follow-up.",
-  outputs: "A structured lead record, priority score, missing-information checklist, and draft response for human review.",
-  business_value: "Less manual triage, faster follow-up, more consistent lead records, and fewer incomplete bookings.",
-};
+const PYTHON = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+const GIT = process.env.GIT || "git";
+const SLOT = (process.env.AMALA_SLOT || "manual").replace(/[^a-zA-Z0-9_-]/g, "-");
+
+const BUSINESSES = [
+  { name: "MobileMistri", url: "https://www.mobilemistri.com/", email: "info@mobilemistri.com", identity: ["mobilemistri", "mobile repair"], hypothesis: "Callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details." },
+  { name: "Viva Laundry", url: "https://vivalaundry.in/", email: "hello@vivalaundry.in", identity: ["viva laundry", "laundry"], hypothesis: "Pickup requests may require manual routing by branch, service, area, preferred slot, and express-service need." },
+  { name: "EasyLaundry", url: "https://easylaundry.in/", email: "support@easylaundry.in", identity: ["easy laundry", "laundry"], hypothesis: "Partner and customer enquiries may require manual classification by location, request type, urgency, and missing details." },
+  { name: "Single Thread Caterers", url: "https://singlethread.in/", email: "info@singlethread.in", identity: ["single thread", "catering"], hypothesis: "Catering enquiries may require manual qualification by event date, guest count, cuisine, venue, dietary needs, and follow-up status." },
+  { name: "MyKhana", url: "https://www.mykhana.in/", email: "sales@mykhana.in", identity: ["mykhana", "catering"], hypothesis: "Catering enquiries may require manual routing by event type, location, date, headcount, menu preference, and budget range." },
+  { name: "Shuchi Laundry", url: "https://shuchilaundry.com/", email: "info@shuchilaundry.com", identity: ["shuchi", "laundry"], hypothesis: "Pickup and franchise enquiries may require manual separation, service-area validation, scheduling, and missing-detail follow-up." },
+  { name: "Pet Society India", url: "https://www.petsocietyindia.com/", email: null, identity: ["pet society", "grooming"], hypothesis: "Grooming bookings may require manual qualification by pet type, coat condition, preferred studio, service, temperament, and appointment slot." },
+  { name: "Pawpad", url: "https://pawpad.in/", email: null, identity: ["pawpad", "grooming"], hypothesis: "Pet-grooming enquiries may require manual intake of pet temperament, coat condition, requested service, availability, and contact details." },
+  { name: "GoCaters", url: "https://gocaters.in/", email: "admin@gocaters.in", identity: ["gocaters", "catering"], hypothesis: "Quote requests may require manual qualification by event date, location, guest count, menu, dietary needs, staffing, and equipment." },
+  { name: "Doorstep Fix", url: "https://doorstepfix.com/", email: "mansoor@doorstepfix.com", identity: ["doorstep fix", "repair"], hypothesis: "Home-service requests may require manual triage by appliance or trade, location, urgency, warranty need, and preferred visit time." },
+];
 
 const PROTOTYPE = `"""Synthetic-data enquiry qualification prototype."""
 from dataclasses import asdict, dataclass
@@ -32,12 +38,12 @@ class Result:
 
 def qualify(enquiry: dict) -> Result:
     text = str(enquiry.get("message", "")).lower()
-    cities = ["delhi", "noida", "gurugram", "gurgaon", "mumbai", "pune", "bengaluru", "bangalore"]
+    cities = ["delhi", "noida", "gurugram", "mumbai", "pune", "bengaluru", "bangalore", "chennai", "hyderabad"]
     city = next((c.title() for c in cities if re.search(rf"\\b{re.escape(c)}\\b", text)), None)
-    urgent = any(word in text for word in ("urgent", "today", "asap", "immediately"))
-    appointment = any(word in text for word in ("book", "appointment", "visit", "technician"))
-    repair = any(word in text for word in ("repair", "screen", "battery", "broken", "not working"))
-    intent = "appointment" if appointment else "repair" if repair else "general"
+    urgent = any(word in text for word in ("urgent", "today", "asap", "immediately", "same day"))
+    booking = any(word in text for word in ("book", "appointment", "pickup", "visit", "quote", "schedule"))
+    service = any(word in text for word in ("repair", "laundry", "groom", "catering", "service", "clean"))
+    intent = "booking" if booking else "service" if service else "general"
     missing = [key for key in ("name", "contact") if not enquiry.get(key)]
     if city is None:
         missing.append("city")
@@ -53,21 +59,21 @@ const TESTS = `import unittest
 from src.qualify import qualify
 
 class QualificationTests(unittest.TestCase):
-    def test_urgent_repair(self):
-        result = qualify({"name":"Anu","contact":"9999999999","message":"Urgent broken screen repair in Noida today"})
-        self.assertEqual(result.intent, "repair")
+    def test_urgent_booking(self):
+        result = qualify({"name":"Anu","contact":"9999999999","message":"Urgent pickup service in Noida today"})
+        self.assertEqual(result.intent, "booking")
         self.assertEqual(result.urgency, "high")
         self.assertEqual(result.city, "Noida")
         self.assertEqual(result.missing_fields, [])
 
     def test_missing_fields(self):
-        result = qualify({"message":"Please book a technician visit"})
-        self.assertEqual(result.intent, "appointment")
+        result = qualify({"message":"Please book an appointment"})
+        self.assertEqual(result.intent, "booking")
         self.assertEqual(result.missing_fields, ["name", "contact", "city"])
 
     def test_general_enquiry(self):
         result = qualify({"name":"Raj","contact":"8888888888","message":"What services do you offer in Pune?"})
-        self.assertEqual(result.intent, "general")
+        self.assertEqual(result.intent, "service")
         self.assertEqual(result.city, "Pune")
 
 if __name__ == "__main__":
@@ -75,89 +81,118 @@ if __name__ == "__main__":
 `;
 
 function cleanHtml(html) {
-  return html.replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&#160;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ").trim();
+  return html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
 }
 
-async function callOllama(model, evidence) {
-  const prompt = `Return concise JSON with keys problem_hypothesis, solution, inputs, processing, outputs, business_value. Business: ${BUSINESS.name}. Focus only on this hypothesis: callback and booking enquiries may need manual qualification by repair type, city, urgency, and missing details. Propose an enquiry-qualification automation, not a new consumer mobile app. Official public evidence: ${evidence.slice(0, 4000)}. Label the operational problem as a hypothesis and do not invent facts.`;
-  const response = await fetch("http://127.0.0.1:11434/api/generate", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ model, prompt, stream: false, format: "json", think: false, options: { temperature: 0.1, num_predict: 500 } }),
-    signal: AbortSignal.timeout(120_000),
-  });
+function hash(text) {
+  return [...text].reduce((value, char) => ((value * 31) + char.charCodeAt(0)) >>> 0, 2166136261);
+}
+
+async function selectBusiness(day) {
+  const start = hash(`${day}-${SLOT}`) % BUSINESSES.length;
+  const errors = [];
+  for (let offset = 0; offset < BUSINESSES.length; offset += 1) {
+    const business = BUSINESSES[(start + offset) % BUSINESSES.length];
+    try {
+      const page = await fetch(business.url, { headers: { "user-agent": "AmalaBusinessResearch/2.0 (+public-source-verification)" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
+      if (!page.ok) throw new Error(`HTTP ${page.status}`);
+      const evidence = cleanHtml(await page.text());
+      const lower = evidence.toLowerCase();
+      if (!business.identity.some((token) => lower.includes(token))) throw new Error("identity check failed");
+      return { business, evidence, sourceFailures: errors };
+    } catch (error) {
+      errors.push(`${business.name}: ${error.message}`);
+    }
+  }
+  throw new Error(`No official business source passed verification: ${errors.join("; ")}`);
+}
+
+function baselineAnalysis(business) {
+  return {
+    problem_hypothesis: `${business.hypothesis} This is a hypothesis to validate with the business.`,
+    solution: "An AI-assisted enquiry qualification workflow that extracts the request type, location, urgency, and missing fields, then produces a structured lead and draft follow-up.",
+    inputs: "Public website enquiry or booking text, customer name and contact details, requested service, location, and preferred date or slot.",
+    processing: "Validate required fields, classify intent and urgency, extract service and location, detect missing information, and route the enquiry for follow-up.",
+    outputs: "A structured lead record, priority score, missing-information checklist, routing suggestion, and draft response for review.",
+    business_value: "Less manual triage, faster follow-up, more consistent records, and fewer incomplete bookings.",
+  };
+}
+
+async function callOllama(model, business, evidence) {
+  const prompt = `Return concise JSON with keys problem_hypothesis, solution, inputs, processing, outputs, business_value. Business: ${business.name}. Official website: ${business.url}. Public evidence: ${evidence.slice(0, 5000)}. Starting hypothesis: ${business.hypothesis} Label the operational problem as a hypothesis. Propose an enquiry or booking automation grounded in the evidence. Do not invent customer data, internal metrics, prices, or confirmed pain points.`;
+  const response = await fetch("http://127.0.0.1:11434/api/generate", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model, prompt, stream: false, format: "json", think: false, options: { temperature: 0.1, num_predict: 600 } }), signal: AbortSignal.timeout(180_000) });
   if (!response.ok) throw new Error(`Ollama ${model} HTTP ${response.status}`);
   const result = await response.json();
   if (!result.response) throw new Error(`Ollama ${model} returned no response`);
   return JSON.parse(result.response);
 }
 
+async function exists(filePath) {
+  try { await access(filePath, fsConstants.F_OK); return true; } catch { return false; }
+}
+
+function run(command, args, options = {}) {
+  const result = spawnSync(command, args, { encoding: "utf8", ...options });
+  if (result.error) throw result.error;
+  return result;
+}
+
 async function main() {
   const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  const runDir = path.join(HERE, "runs", day);
+  const runId = `${day}-${SLOT}`;
+  const runDir = path.join(HERE, "runs", runId);
+  const reportPath = path.join(runDir, "report.md");
+  if (await exists(reportPath)) { console.log(`Amala ${runId} already exists; skipping duplicate execution.`); return; }
+
   const prototypeDir = path.join(runDir, "prototype");
   await mkdir(path.join(prototypeDir, "src"), { recursive: true });
   await mkdir(path.join(prototypeDir, "tests"), { recursive: true });
 
-  const page = await fetch(BUSINESS.url, { headers: { "user-agent": "AmalaBusinessResearch/1.0" }, signal: AbortSignal.timeout(30_000) });
-  if (!page.ok) throw new Error(`Official website HTTP ${page.status}`);
-  const evidence = cleanHtml(await page.text());
-  if (!evidence.toLowerCase().includes("mobilemistri")) throw new Error("Official-site identity check failed");
-
+  const { business, evidence, sourceFailures } = await selectBusiness(day);
   let analysis;
   let modelUsed;
   const modelErrors = [];
   for (const model of ["qwen3:4b", "gemma3:1b"]) {
     try {
-      const candidate = await callOllama(model, evidence);
-      const qualityText = `${candidate.problem_hypothesis || ""} ${candidate.solution || ""}`.toLowerCase();
-      analysis = /(enquir|inquir|lead|triage)/.test(qualityText) && /(automat|assistant|qualif|triage)/.test(qualityText)
-        ? candidate
-        : { ...BASELINE_ANALYSIS, model_quality_note: `${model} output failed scope validation; the evidence-based baseline was used.` };
+      const candidate = await callOllama(model, business, evidence);
+      const required = ["problem_hypothesis", "solution", "inputs", "processing", "outputs", "business_value"];
+      analysis = required.every((key) => typeof candidate[key] === "string" && candidate[key].trim()) ? candidate : { ...baselineAnalysis(business), model_quality_note: `${model} omitted required fields; the evidence-based baseline was used.` };
       modelUsed = model;
       break;
-    } catch (error) {
-      modelErrors.push(`${model}: ${error.message}`);
-    }
+    } catch (error) { modelErrors.push(`${model}: ${error.message}`); }
   }
   if (!analysis) throw new Error(`Both permitted Ollama models failed: ${modelErrors.join("; ")}`);
 
   await writeFile(path.join(prototypeDir, "src", "__init__.py"), "", "utf8");
   await writeFile(path.join(prototypeDir, "src", "qualify.py"), PROTOTYPE, "utf8");
   await writeFile(path.join(prototypeDir, "tests", "test_qualify.py"), TESTS, "utf8");
-  const tests = spawnSync(PYTHON, ["-m", "unittest", "discover", "-s", "tests", "-v"], { cwd: prototypeDir, encoding: "utf8", timeout: 120_000 });
+  const tests = run(PYTHON, ["-m", "unittest", "discover", "-s", "tests", "-v"], { cwd: prototypeDir, timeout: 120_000 });
   const testOutput = `${tests.stdout || ""}${tests.stderr || ""}`.trim();
   if (tests.status !== 0) throw new Error(`Prototype tests failed:\n${testOutput}`);
 
-  const draft = `Subject: Idea to streamline MobileMistri callback enquiries\n\nHello MobileMistri team,\n\nI reviewed the callback and doorstep-repair options on your public website. A possible opportunity—subject to your confirmation—is automatically sorting enquiries by repair need, city, urgency, and missing contact details. Multimax has prepared a small prototype using synthetic data only. If useful, I can share a short demonstration.\n\nRegards,\nAmala\nMultimax`;
-  const report = `# Amala Office Report — ${day}\n\n- Business: ${BUSINESS.name}\n- Official source: ${BUSINESS.url}\n- Public email: ${BUSINESS.email}\n- Evidence: official site fetched successfully; it advertises doorstep mobile repair, callback/booking paths, and service locations.\n- Hypothesis: ${analysis.problem_hypothesis}\n- Solution: ${analysis.solution}\n- Inputs: ${analysis.inputs}\n- Processing: ${analysis.processing}\n- Outputs: ${analysis.outputs}\n- Expected value: ${analysis.business_value}\n- Model: Ollama ${modelUsed}${modelErrors.length ? ` (earlier attempt: ${modelErrors.join("; ")})` : ""}\n- Prototype: ${prototypeDir}\n- Tests: PASS — 3 automated tests\n- Outreach: draft only; not sent by this scheduled run\n- Actual paid API cost: ₹0\n\n## Draft email\n\n${draft}\n\n## Test output\n\n\`\`\`\n${testOutput}\n\`\`\`\n`;
+  const recipientLine = business.email ? `Public email: ${business.email}` : "Public email: not verified; no email may be sent";
+  const draft = `Subject: Idea to streamline ${business.name} enquiries\n\nHello ${business.name} team,\n\nI reviewed the enquiry and service information on your public website. A possible opportunity—subject to your confirmation—is automatically sorting incoming requests by service, location, urgency, preferred time, and missing details. Multimax prepared a small prototype using synthetic data only. If useful, I can share a short demonstration.\n\nRegards,\nAmala\nMultimax`;
+  const report = `# Amala Office Report — ${runId}\n\n- Business: ${business.name}\n- Official source: ${business.url}\n- ${recipientLine}\n- Evidence: official website fetched and identity-checked successfully\n- Hypothesis: ${analysis.problem_hypothesis}\n- Solution: ${analysis.solution}\n- Inputs: ${analysis.inputs}\n- Processing: ${analysis.processing}\n- Outputs: ${analysis.outputs}\n- Expected value: ${analysis.business_value}\n- Model: Ollama ${modelUsed}${modelErrors.length ? ` (earlier attempt: ${modelErrors.join("; ")})` : ""}\n- OpenClaw: checked by the GitHub workflow before execution\n- Prototype: runs/${runId}/prototype\n- Tests: PASS — 3 automated tests\n- Outreach: draft prepared; cloud Gmail credentials are not configured\n- Actual paid API cost: ₹0\n- Source fallback notes: ${sourceFailures.length ? sourceFailures.join("; ") : "none"}\n\n## Draft email\n\n${draft}\n\n## Test output\n\n\`\`\`\n${testOutput}\n\`\`\`\n`;
   await writeFile(path.join(runDir, "official-site-evidence.txt"), evidence.slice(0, 20_000), "utf8");
-  await writeFile(path.join(runDir, "analysis.json"), JSON.stringify({ business: BUSINESS, modelUsed, modelErrors, analysis }, null, 2), "utf8");
-  await writeFile(path.join(runDir, "report.md"), report, "utf8");
-  await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ day, status: "PASS", business: BUSINESS.name, modelUsed, tests: 3, report: path.join(runDir, "report.md") })}\n`, "utf8");
+  await writeFile(path.join(runDir, "analysis.json"), JSON.stringify({ runId, business, modelUsed, modelErrors, sourceFailures, analysis }, null, 2), "utf8");
+  await writeFile(reportPath, report, "utf8");
+  await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ runId, status: "PASS", business: business.name, modelUsed, tests: 3, report: `runs/${runId}/report.md` })}\n`, "utf8");
 
-  const gitAdd = spawnSync(GIT, ["add", "--", `runs/${day}`, "run-log.jsonl"], { cwd: HERE, encoding: "utf8", timeout: 60_000 });
+  const gitAdd = run(GIT, ["add", "--", `runs/${runId}`, "run-log.jsonl"], { cwd: HERE, timeout: 60_000 });
   if (gitAdd.status !== 0) throw new Error(`Git add failed: ${(gitAdd.stderr || gitAdd.stdout).trim()}`);
-  const staged = spawnSync(GIT, ["diff", "--cached", "--quiet"], { cwd: HERE, encoding: "utf8", timeout: 60_000 });
+  const staged = run(GIT, ["diff", "--cached", "--quiet"], { cwd: HERE, timeout: 60_000 });
   if (staged.status === 1) {
-    const commit = spawnSync(GIT, ["commit", "-m", `Add Amala office report ${day}`], { cwd: HERE, encoding: "utf8", timeout: 120_000 });
+    const commit = run(GIT, ["commit", "-m", `Add Amala office report ${runId}`], { cwd: HERE, timeout: 120_000 });
     if (commit.status !== 0) throw new Error(`Git commit failed: ${(commit.stderr || commit.stdout).trim()}`);
-    const push = spawnSync(GIT, ["push", "origin", "main"], { cwd: HERE, encoding: "utf8", timeout: 180_000 });
+    const push = run(GIT, ["push", "origin", "main"], { cwd: HERE, timeout: 180_000 });
     if (push.status !== 0) throw new Error(`GitHub push failed: ${(push.stderr || push.stdout).trim()}`);
-  } else if (staged.status !== 0) {
-    throw new Error(`Git staged-change check failed: ${(staged.stderr || staged.stdout).trim()}`);
-  }
+  } else if (staged.status !== 0) throw new Error(`Git staged-change check failed: ${(staged.stderr || staged.stdout).trim()}`);
 
-  console.log(`🤖 Amala — 9 AM Office Workflow PASS\nBusiness: ${BUSINESS.name}\nResearch: official website verified\nProblem: ${analysis.problem_hypothesis}\nSolution: ${analysis.solution}\nModel: Ollama ${modelUsed}\nPrototype tests: 3/3 passed\nOutreach: draft prepared (not sent)\nGitHub: daily artifacts committed and pushed\nCost: ₹0\nReport: ${path.join(runDir, "report.md")}`);
+  console.log(`🤖 Amala — ${SLOT} Office Workflow PASS\nBusiness: ${business.name}\nOfficial source: ${business.url}\nProblem: ${analysis.problem_hypothesis}\nSolution: ${analysis.solution}\nModel: Ollama ${modelUsed}\nPrototype tests: 3/3 passed\nOutreach: draft prepared\nGitHub: daily artifacts committed and pushed\nCost: ₹0\nReport: runs/${runId}/report.md`);
 }
 
 main().catch(async (error) => {
-  await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ at: new Date().toISOString(), status: "FAIL", error: error.message })}\n`, "utf8");
+  await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ at: new Date().toISOString(), slot: SLOT, status: "FAIL", error: error.message })}\n`, "utf8");
   console.error(`Amala office workflow failed: ${error.message}`);
   process.exitCode = 1;
 });

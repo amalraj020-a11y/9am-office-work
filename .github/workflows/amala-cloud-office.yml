@@ -1,0 +1,65 @@
+name: Amala cloud office
+
+on:
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: Run slot recorded in the report
+        required: true
+        default: manual
+
+permissions:
+  contents: write
+
+concurrency:
+  group: amala-cloud-office
+  cancel-in-progress: false
+
+jobs:
+  office-work:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Configure Git identity
+        run: |
+          git config user.name "Amala Office Employee"
+          git config user.email "amalaraj020@gmail.com"
+      - name: Start Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          nohup ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:11434/api/tags && break
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:11434/api/tags
+      - name: Load free local models
+        run: |
+          ollama pull qwen3:4b
+          ollama pull gemma3:1b
+      - name: Verify OpenClaw
+        run: |
+          npm install --global openclaw
+          openclaw --version
+      - name: Run Amala office workflow
+        env:
+          AMALA_SLOT: ${{ inputs.slot }}
+        run: node amala_office.mjs
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: amala-cloud-diagnostics-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/ollama.log
+            run-log.jsonl
+          retention-days: 3

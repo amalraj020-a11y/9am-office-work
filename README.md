@@ -1,30 +1,28 @@
-# Amala — Autonomous 9 AM Office Workflow
+# Amala — Autonomous 9 AM and 9 PM Office Workflow
 
-Amala is Multimax's new intern and automated AI office employee. OpenClaw starts this workflow every day at **9:00 AM Asia/Kolkata**. It researches the configured business opportunity, uses local AI to prepare an automation plan, builds and tests a small Python prototype, saves a report, and publishes the successful run to this repository.
+Amala is Multimax's automated AI office employee. AWS EventBridge starts the cloud workflow every day at **9:00 AM and 9:00 PM Asia/Kolkata**. A small AWS Lambda function dispatches this public repository's GitHub Actions workflow. The runner verifies OpenClaw, starts Ollama, researches a rotating real business from its official website, prepares an automation plan, builds and tests a Python prototype, saves a report, and publishes the successful run to this repository.
 
-The workflow has a **₹0 paid-API budget**. It uses local Ollama models and does not activate paid AI services. Normal electricity, internet, and account-provider usage still apply.
+The workflow has a **₹0 paid-API budget**. AWS Lambda and EventBridge usage is kept inside their monthly free allowances, and the public repository uses free standard GitHub-hosted runners. Ollama runs on the temporary GitHub runner, so the office computer may be shut down. No paid AI API is enabled.
 
-## What happens at 9 AM
+## What happens at 9 AM and 9 PM
 
 | Stage | What Amala does | Verified output |
 | --- | --- | --- |
-| 1. Research | Fetches the configured business's official public website and verifies its identity. | `official-site-evidence.txt` |
+| 1. Research | Selects a business from a rotating verified pool, fetches its official public website, and verifies its identity. | `official-site-evidence.txt` |
 | 2. Identify opportunity | Treats the operational problem as a hypothesis, not a confirmed customer fact. | `analysis.json` |
 | 3. Design solution | Defines the proposed automation's inputs, processing, outputs, and expected value. | Analysis and daily report |
 | 4. Build prototype | Creates a small Python enquiry-qualification prototype using synthetic data only. | `prototype/src/qualify.py` |
 | 5. Test | Runs the Python unit-test suite and stops the run if a test fails. | Test output in `report.md` |
 | 6. Prepare outreach | Produces a personalized email draft for review. The scheduled workflow does not send it. | Draft inside `report.md` |
-| 7. Record work | Writes dated evidence, analysis, source code, tests, and the final report. | `runs/YYYY-MM-DD/` |
+| 7. Record work | Writes dated evidence, analysis, source code, tests, and the final report. | `runs/YYYY-MM-DD-SLOT/` |
 | 8. Publish | Commits and pushes a successful run to `main`. A push failure makes the workflow fail instead of reporting false success. | Git commit and `run-log.jsonl` |
-| 9. Report | Prints a compact result for delivery through OpenClaw's configured messaging channel. | Scheduler run output |
+| 9. Report | Prints a compact result in the GitHub Actions run and records the report in the repository. | Actions log and daily report |
 
 The office session is configured as a one-hour workflow window. The current implementation completes as soon as its controlled tasks finish; it does not artificially wait for the full hour.
 
-## Current business case
+## Business selection
 
-The current script is configured for **MobileMistri** (`https://www.mobilemistri.com/`). It does not select a different company automatically each day.
-
-The working hypothesis is that callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details. This must be validated with the business before any commercial implementation.
+The script rotates through a curated pool of real service businesses with official public websites. If a selected website fails its identity check, the workflow tries the next candidate and records the failure. Operational problems remain hypotheses until a business confirms them.
 
 The prototype converts synthetic enquiry data into:
 
@@ -40,16 +38,18 @@ No customer production data is used, and this repository is not a production dep
 
 | Tool | Purpose | Cost configuration |
 | --- | --- | --- |
-| OpenClaw gateway and scheduler | Runs the job and routes its completion report. | Existing local setup |
-| Ollama `qwen3:4b` | Primary local model for the business analysis. | No paid API |
-| Ollama `gemma3:1b` | Fallback if the primary model fails. | No paid API |
-| Node.js | Executes `amala_office.mjs` and coordinates the workflow. | Local runtime |
-| Python `unittest` | Builds and verifies the prototype. | Local runtime |
-| Git | Versions every successful daily run. | Free/local |
-| GitHub | Stores the public daily archive in this repository. | Free account features |
-| WhatsApp through OpenClaw | Receives the configured completion report when the channel is connected. | No paid AI API enabled |
+| AWS EventBridge Scheduler | Triggers the 9 AM and 9 PM jobs in Asia/Kolkata. | Monthly free allowance |
+| AWS Lambda | Dispatches the GitHub workflow. | Monthly free allowance |
+| OpenClaw | Verified on each temporary runner as the configured agent layer. | Free runner |
+| Ollama `qwen3:4b` | Primary model for business analysis. | Free runner; no paid API |
+| Ollama `gemma3:1b` | Fallback if the primary model fails. | Free runner; no paid API |
+| GitHub Actions | Provides temporary Linux compute while the office PC is off. | Free standard runner for this public repository |
+| Node.js | Executes `amala_office.mjs` and coordinates the workflow. | Free runner |
+| Python `unittest` | Builds and verifies the prototype. | Free runner |
+| Git | Versions every successful run. | Free runner |
+| GitHub | Stores reports, prototypes, evidence, and test results. | Public repository; free account features |
 
-Gmail and Google Sheets were exercised during the controlled setup test. They are **not called by `amala_office.mjs` in every scheduled run**, so the daily report must not claim they were updated unless OpenClaw separately verifies those actions.
+Gmail, Google Sheets, WhatsApp, and Telegram credentials are not stored in this public repository or temporary runner. Each cloud report states the actual delivery status and prepares outreach as a draft until a cloud-safe integration is configured.
 
 Groq is not required by this workflow and is not enabled as a paid fallback. The permitted model order is strictly `qwen3:4b`, then `gemma3:1b`.
 
@@ -61,7 +61,7 @@ Groq is not required by this workflow and is not enabled as a paid fallback. The
 ├── run-log.jsonl          # PASS/FAIL execution records
 ├── prototype.gitignore    # Prototype ignore rules
 └── runs/
-    └── YYYY-MM-DD/
+    └── YYYY-MM-DD-0900/ or YYYY-MM-DD-2100/
         ├── official-site-evidence.txt
         ├── analysis.json
         ├── report.md
@@ -101,7 +101,7 @@ The latest controlled run is stored in `runs/2026-10-20/`. Its prototype complet
 
 ## Schedule and repository
 
-- Schedule: every day at **9:00 AM Asia/Kolkata (IST)**
+- Schedule: every day at **9:00 AM and 9:00 PM Asia/Kolkata (IST)**
 - Primary model: **Ollama `qwen3:4b`**
 - Fallback model: **Ollama `gemma3:1b`**
 - Repository: `amalraj020-a11y/9am-office-work`
@@ -109,4 +109,4 @@ The latest controlled run is stored in `runs/2026-10-20/`. Its prototype complet
 - Visibility: public
 - Paid AI/API budget: **₹0**
 
-Successful daily artifacts are committed with a dated message and pushed to this repository. The workflow does not create duplicate schedules or repositories.
+Successful artifacts are committed with a dated slot and pushed to this repository. A run skips an existing slot report, which prevents duplicate execution from creating duplicate work.

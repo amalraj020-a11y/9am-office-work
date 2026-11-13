@@ -1,0 +1,8 @@
+{
+  "business": "Viva Laundry",
+  "official_website": "https://vivalaundry.in/",
+  "public_email": "hello@vivalaundry.in",
+  "problem_hypothesis": "Multi-branch pickup requests may require repetitive checking of service area, branch, service, pickup slot, express priority, and missing customer details.",
+  "solution": "A human-reviewed pickup router that validates fields, maps service areas to branches, flags express requests, and prepares a draft confirmation.",
+  "actual_paid_cost_inr": 0
+}

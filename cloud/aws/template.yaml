@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Zero-cost-envelope AWS scheduler that dispatches Amala's public GitHub Actions workflow.
+
+Parameters:
+  GitHubTokenParameterName:
+    Type: String
+    Default: /amala/github/token
+  GitHubOwner:
+    Type: String
+    Default: amalraj020-a11y
+  GitHubRepository:
+    Type: String
+    Default: 9am-office-work
+  GitHubWorkflow:
+    Type: String
+    Default: amala-cloud-office.yml
+  GitHubBranch:
+    Type: String
+    Default: main
+
+Resources:
+  DispatcherRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AmalaDispatcherAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action: ssm:GetParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter${GitHubTokenParameterName}
+
+  DispatcherFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Dispatches the Amala GitHub Actions workflow at the requested office slot.
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt DispatcherRole.Arn
+      Timeout: 30
+      MemorySize: 128
+      Environment:
+        Variables:
+          GITHUB_TOKEN_PARAMETER: !Ref GitHubTokenParameterName
+          GITHUB_OWNER: !Ref GitHubOwner
+          GITHUB_REPOSITORY: !Ref GitHubRepository
+          GITHUB_WORKFLOW: !Ref GitHubWorkflow
+          GITHUB_BRANCH: !Ref GitHubBranch
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import urllib.error
+          import urllib.request
+          import boto3
+
+          ssm = boto3.client("ssm")
+
+          def lambda_handler(event, context):
+              slot = str(event.get("slot", "manual"))
+              token = ssm.get_parameter(
+                  Name=os.environ["GITHUB_TOKEN_PARAMETER"],
+                  WithDecryption=True,
+              )["Parameter"]["Value"]
+              url = (
+                  "https://api.github.com/repos/"
+                  + os.environ["GITHUB_OWNER"]
+                  + "/"
+                  + os.environ["GITHUB_REPOSITORY"]
+                  + "/actions/workflows/"
+                  + os.environ["GITHUB_WORKFLOW"]
+                  + "/dispatches"
+              )
+              payload = json.dumps({
+                  "ref": os.environ["GITHUB_BRANCH"],
+                  "inputs": {"slot": slot},
+              }).encode("utf-8")
+              request = urllib.request.Request(
+                  url,
+                  data=payload,
+                  method="POST",
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": "Bearer " + token,
+                      "Content-Type": "application/json",
+                      "User-Agent": "amala-aws-scheduler/1.0",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      status = response.status
+              except urllib.error.HTTPError as error:
+                  body = error.read().decode("utf-8", errors="replace")[:500]
+                  raise RuntimeError(
+                      "GitHub dispatch failed with HTTP "
+                      + str(error.code)
+                      + ": "
+                      + body
+                  ) from error
+              if status != 204:
+                  raise RuntimeError("Unexpected GitHub HTTP " + str(status))
+              return {"statusCode": 200, "dispatched": True, "slot": slot}
+
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: scheduler.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: InvokeAmalaDispatcher
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt DispatcherFunction.Arn
+
+  MorningSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: amala-office-0900-ist
+      Description: Starts Amala's morning office workflow at 9 AM IST.
+      State: ENABLED
+      ScheduleExpression: cron(0 9 * * ? *)
+      ScheduleExpressionTimezone: Asia/Kolkata
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt DispatcherFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"slot":"0900"}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 3600
+          MaximumRetryAttempts: 2
+
+  EveningSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: amala-office-2100-ist
+      Description: Starts Amala's evening office workflow at 9 PM IST.
+      State: ENABLED
+      ScheduleExpression: cron(0 21 * * ? *)
+      ScheduleExpressionTimezone: Asia/Kolkata
+      FlexibleTimeWindow:
+        Mode: "OFF"
+      Target:
+        Arn: !GetAtt DispatcherFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"slot":"2100"}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 3600
+          MaximumRetryAttempts: 2
+
+Outputs:
+  DispatcherFunctionName:
+    Value: !Ref DispatcherFunction
+  MorningScheduleName:
+    Value: !Ref MorningSchedule
+  EveningScheduleName:
+    Value: !Ref EveningSchedule

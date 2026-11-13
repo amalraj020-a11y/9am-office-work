@@ -25,3 +25,4 @@
 {"day":"2026-11-13","run":"0900-late-run","status":"PARTIAL","business":"Viva Laundry","orchestrator":"OpenAI Codex","openclaw":"UNHEALTHY","ollama":"UNHEALTHY","tests":4,"gmail":"SENT_VERIFIED","costInr":0,"report":"runs/2026-11-13-0900-late-run/report.md"}
 {"runId":"2026-11-13-test-cloud","status":"PASS","business":"EasyLaundry","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-13-test-cloud/report.md"}
 {"runId":"2026-11-13-aws-test-20261113-204447","status":"PASS","business":"Single Thread Caterers","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-13-aws-test-20261113-204447/report.md"}
+{"runId":"2026-11-13-2100","status":"PASS","business":"Single Thread Caterers","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-13-2100/report.md"}

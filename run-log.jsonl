@@ -28,3 +28,4 @@
 {"runId":"2026-11-13-2100","status":"PASS","business":"Single Thread Caterers","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-13-2100/report.md"}
 {"runId":"2026-11-14-0900","status":"PASS","business":"MobileMistri","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-14-0900/report.md"}
 {"runId":"2026-11-14-2100","status":"PASS","business":"GoCaters","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-14-2100/report.md"}
+{"runId": "2026-11-14-2100", "gmailDelivery": "BLOCKED"}

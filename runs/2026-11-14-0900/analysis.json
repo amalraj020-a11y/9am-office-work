@@ -1,0 +1,25 @@
+{
+  "runId": "2026-11-14-0900",
+  "business": {
+    "name": "MobileMistri",
+    "url": "https://www.mobilemistri.com/",
+    "email": "info@mobilemistri.com",
+    "identity": [
+      "mobilemistri",
+      "mobile repair"
+    ],
+    "hypothesis": "Callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details."
+  },
+  "modelUsed": "qwen3:4b",
+  "modelErrors": [],
+  "sourceFailures": [],
+  "analysis": {
+    "problem_hypothesis": "Callback and booking enquiries may require manual sorting by repair type, city, urgency, and missing contact details. This is a hypothesis to validate with the business.",
+    "solution": "An AI-assisted enquiry qualification workflow that extracts the request type, location, urgency, and missing fields, then produces a structured lead and draft follow-up.",
+    "inputs": "Public website enquiry or booking text, customer name and contact details, requested service, location, and preferred date or slot.",
+    "processing": "Validate required fields, classify intent and urgency, extract service and location, detect missing information, and route the enquiry for follow-up.",
+    "outputs": "A structured lead record, priority score, missing-information checklist, routing suggestion, and draft response for review.",
+    "business_value": "Less manual triage, faster follow-up, more consistent records, and fewer incomplete bookings.",
+    "model_quality_note": "qwen3:4b omitted required fields; the evidence-based baseline was used."
+  }
+}

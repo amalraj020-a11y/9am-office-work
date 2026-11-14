@@ -54,6 +54,22 @@ jobs:
         env:
           AMALA_SLOT: ${{ inputs.slot }}
         run: node amala_office.mjs
+      - name: Deliver verified Gmail outreach and owner report
+        env:
+          AMALA_SLOT: ${{ inputs.slot }}
+          GMAIL_ADDRESS: ${{ secrets.AMALA_GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.AMALA_GMAIL_APP_PASSWORD }}
+        run: python cloud/gmail/send_report.py
+      - name: Save Gmail delivery evidence
+        env:
+          AMALA_SLOT: ${{ inputs.slot }}
+        run: |
+          DAY="$(TZ=Asia/Kolkata date +%F)"
+          git add -- "runs/$DAY-${AMALA_SLOT}/delivery.json" run-log.jsonl
+          if ! git diff --cached --quiet; then
+            git commit -m "Record Amala Gmail delivery $DAY-${AMALA_SLOT}"
+            git push origin main
+          fi
       - name: Upload diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -62,4 +78,5 @@ jobs:
           path: |
             ${{ runner.temp }}/ollama.log
             run-log.jsonl
+            runs/*/delivery.json
           retention-days: 3

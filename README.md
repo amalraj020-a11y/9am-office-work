@@ -49,7 +49,7 @@ No customer production data is used, and this repository is not a production dep
 | Git | Versions every successful run. | Free runner |
 | GitHub | Stores reports, prototypes, evidence, and test results. | Public repository; free account features |
 
-Gmail, Google Sheets, WhatsApp, and Telegram credentials are not stored in this public repository or temporary runner. Each cloud report states the actual delivery status and prepares outreach as a draft until a cloud-safe integration is configured.
+Gmail credentials are stored only as encrypted GitHub Actions secrets. The cloud runner verifies the recipient against saved official-site evidence, checks Gmail for duplicates, sends authorized initial outreach, verifies the message in Sent, and records the result in `delivery.json`. Google Sheets, WhatsApp, and Telegram credentials are not stored in this public repository.
 
 Groq is not required by this workflow and is not enabled as a paid fallback. The permitted model order is strictly `qwen3:4b`, then `gemma3:1b`.
 

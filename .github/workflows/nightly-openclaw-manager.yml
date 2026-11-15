@@ -1,0 +1,56 @@
+name: Amala 1 AM cloud manager
+
+on:
+  schedule:
+    # 19:30 UTC is 01:00 IST on the following calendar day.
+    - cron: "30 19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: amala-nightly-cloud-manager
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install workbook dependency
+        run: python -m pip install --disable-pip-version-check openpyxl==3.1.5
+
+      - name: Build and email control report
+        env:
+          GMAIL_ADDRESS: ${{ secrets.AMALA_GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.AMALA_GMAIL_APP_PASSWORD }}
+        run: python cloud/manager/nightly_manager.py
+
+      - name: Save report and Excel history
+        run: |
+          git config user.name "Amala OpenClaw Manager"
+          git config user.email "amalaraj020@gmail.com"
+          git add management
+          if ! git diff --cached --quiet; then
+            git commit -m "Record nightly OpenClaw control report"
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+      - name: Upload report evidence on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: amala-nightly-manager-${{ github.run_id }}
+          path: management/
+          if-no-files-found: warn
+          retention-days: 7

@@ -268,7 +268,18 @@ def main():
     rows = collect(report_day)
     daily_row = workbook(report_day, rows)
     subject, body = render(report_day, rows)
-    email_status = send_report(subject, body)
+    try:
+        email_status = send_report(subject, body)
+    except Exception as error:
+        email_status = "FAILED: " + str(error)[:240]
+        finish_workbook(daily_row, email_status)
+        print(json.dumps({
+            "report_date": report_day.isoformat(),
+            "completed": sum(row["status"] == "COMPLETED" for row in rows),
+            "email_status": email_status,
+            "workbook": str(WORKBOOK.relative_to(ROOT)),
+        }))
+        raise
     finish_workbook(daily_row, email_status)
     print(json.dumps({
         "report_date": report_day.isoformat(),

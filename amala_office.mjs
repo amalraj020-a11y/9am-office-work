@@ -1,4 +1,4 @@
-import { access, appendFile, mkdir, writeFile } from "node:fs/promises";
+import { access, appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -17,6 +17,15 @@ const BUSINESSES = [
   { name: "Shuchi Laundry", url: "https://shuchilaundry.com/", email: "info@shuchilaundry.com", identity: ["shuchi", "laundry"], hypothesis: "Pickup and franchise enquiries may require manual separation, service-area validation, scheduling, and missing-detail follow-up." },
   { name: "GoCaters", url: "https://gocaters.in/", email: "admin@gocaters.in", identity: ["gocaters", "catering"], hypothesis: "Quote requests may require manual qualification by event date, location, guest count, menu, dietary needs, staffing, and equipment." },
   { name: "Doorstep Fix", url: "https://doorstepfix.com/", email: "mansoor@doorstepfix.com", identity: ["doorstep fix", "repair"], hypothesis: "Home-service requests may require manual triage by appliance or trade, location, urgency, warranty need, and preferred visit time." },
+];
+
+const DISCOVERY_AREAS = [
+  "12.80,77.40,13.20,77.80",
+  "12.80,80.10,13.20,80.35",
+  "17.20,78.20,17.60,78.70",
+  "18.40,73.70,18.70,74.00",
+  "18.90,72.75,19.30,73.05",
+  "28.40,76.80,28.90,77.40",
 ];
 
 const PROTOTYPE = `"""Synthetic-data enquiry qualification prototype."""
@@ -86,10 +95,28 @@ function hash(text) {
 }
 
 async function selectBusiness(day) {
+  const contacted = new Set();
+  try {
+    const log = await readFile(path.join(HERE, "run-log.jsonl"), "utf8");
+    for (const line of log.split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      try {
+        const entry = JSON.parse(line);
+        if (typeof entry.business === "string") contacted.add(entry.business.toLowerCase());
+      } catch { /* keep malformed historical lines without blocking a run */ }
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+
   const start = hash(`${day}-${SLOT}`) % BUSINESSES.length;
   const errors = [];
   for (let offset = 0; offset < BUSINESSES.length; offset += 1) {
     const business = BUSINESSES[(start + offset) % BUSINESSES.length];
+    if (contacted.has(business.name.toLowerCase())) {
+      errors.push(`${business.name}: already processed`);
+      continue;
+    }
     try {
       const page = await fetch(business.url, { headers: { "user-agent": "AmalaBusinessResearch/2.0 (+public-source-verification)" }, redirect: "follow", signal: AbortSignal.timeout(30_000) });
       if (!page.ok) throw new Error(`HTTP ${page.status}`);
@@ -101,7 +128,77 @@ async function selectBusiness(day) {
       errors.push(`${business.name}: ${error.message}`);
     }
   }
-  throw new Error(`No official business source passed verification: ${errors.join("; ")}`);
+
+  const bbox = DISCOVERY_AREAS[hash(`${day}-${SLOT}-discovery`) % DISCOVERY_AREAS.length];
+  const query = `[out:json][timeout:25];(
+    nwr["name"]["website"]["email"](${bbox});
+    nwr["name"]["website"]["contact:email"](${bbox});
+    nwr["name"]["contact:website"]["email"](${bbox});
+    nwr["name"]["contact:website"]["contact:email"](${bbox});
+  );out tags 80;`;
+  try {
+    let payload;
+    const discoveryErrors = [];
+    for (const endpoint of [
+      "https://overpass-api.de/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter",
+      "https://overpass.private.coffee/api/interpreter",
+    ]) {
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": "AmalaBusinessResearch/3.0" },
+          body: new URLSearchParams({ data: query }),
+          signal: AbortSignal.timeout(45_000),
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        payload = await response.json();
+        break;
+      } catch (error) {
+        discoveryErrors.push(`${new URL(endpoint).hostname}: ${error.message}`);
+      }
+    }
+    if (!payload) throw new Error(discoveryErrors.join("; "));
+    const candidates = (payload.elements || []).map(({ tags = {} }) => ({
+      name: String(tags.name || "").trim(),
+      url: String(tags.website || tags["contact:website"] || "").trim(),
+      email: String(tags.email || tags["contact:email"] || "").trim().toLowerCase(),
+      category: String(tags.shop || tags.amenity || tags.office || "small business").replaceAll("_", " "),
+    })).filter((candidate) => candidate.name && candidate.url && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(candidate.email))
+      .filter((candidate) => !contacted.has(candidate.name.toLowerCase()))
+      .sort((a, b) => hash(`${day}-${SLOT}-${a.name}`) - hash(`${day}-${SLOT}-${b.name}`));
+
+    for (const candidate of candidates.slice(0, 25)) {
+      try {
+        const url = new URL(candidate.url.startsWith("http") ? candidate.url : `https://${candidate.url}`);
+        if (url.protocol !== "https:") throw new Error("official URL is not HTTPS");
+        const page = await fetch(url, { headers: { "user-agent": "AmalaBusinessResearch/3.0 (+public-source-verification)" }, redirect: "follow", signal: AbortSignal.timeout(20_000) });
+        if (!page.ok) throw new Error(`HTTP ${page.status}`);
+        const evidence = cleanHtml(await page.text());
+        const lower = evidence.toLowerCase();
+        const identity = candidate.name.toLowerCase().split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+        if (!identity.some((token) => lower.includes(token))) throw new Error("identity check failed");
+        if (!lower.includes(candidate.email)) throw new Error("public email not shown on official site");
+        return {
+          business: {
+            name: candidate.name,
+            url: url.href,
+            email: candidate.email,
+            identity,
+            hypothesis: `${candidate.category} enquiries may require manual qualification, routing, missing-detail follow-up, and status tracking.`,
+          },
+          evidence,
+          sourceFailures: errors,
+        };
+      } catch (error) {
+        errors.push(`${candidate.name}: ${error.message}`);
+      }
+    }
+  } catch (error) {
+    errors.push(`public business discovery: ${error.message}`);
+  }
+
+  throw new Error(`No new verified business remained; refusing to repeat a previous client: ${errors.join("; ")}`);
 }
 
 function baselineAnalysis(business) {

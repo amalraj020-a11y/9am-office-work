@@ -22,7 +22,7 @@ The office session is configured as a one-hour workflow window. The current impl
 
 ## Business selection
 
-The script rotates through a curated pool of real service businesses with official public websites. If a selected website fails its identity check, the workflow tries the next candidate and records the failure. Operational problems remain hypotheses until a business confirms them.
+The script checks the complete run log and excludes every previously processed business before selecting a client. It first uses the curated pool; when that pool is exhausted, it searches the free OpenStreetMap Overpass public dataset for a new business. A discovered client is accepted only when its official HTTPS website shows the business identity and public email. If no new verified client is available, the run fails safely instead of repeating an old client. Operational problems remain hypotheses until a business confirms them.
 
 The prototype converts synthetic enquiry data into:
 

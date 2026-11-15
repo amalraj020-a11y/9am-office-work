@@ -14,11 +14,11 @@
 - OpenClaw: checked by the GitHub workflow before execution
 - Prototype: runs/2026-11-15-2100/prototype
 - Tests: PASS — 3 automated tests
-- Outreach: draft prepared; cloud Gmail credentials are not configured
+- Outreach: SENT_VERIFIED to the public business email listed above; confirmed in the authenticated Gmail Sent mailbox
 - Actual paid API cost: ₹0
 - Source fallback notes: none
 
-## Draft email
+## Sent outreach email
 
 Subject: Idea to streamline MyKhana enquiries
 

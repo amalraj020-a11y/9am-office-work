@@ -1,4 +1,9 @@
 {
-  "status": "BLOCKED",
-  "reason": "Cloud Gmail credentials are not configured for amalaraj020@gmail.com"
+  "status": "SENT_VERIFIED",
+  "provider": "Gmail",
+  "recipient_source": "Verified public business contact listed in report.md",
+  "subject": "Idea to streamline MyKhana enquiries",
+  "sent_at": "2026-11-15T23:02:36+05:30",
+  "verification": "Confirmed in the authenticated account's Sent mailbox",
+  "cloud_sender_note": "This delivery used the connected Gmail integration. The unattended GitHub Actions sender still requires its Gmail credential secret."
 }

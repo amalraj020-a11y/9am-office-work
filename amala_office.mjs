@@ -143,13 +143,17 @@ async function selectBusiness(day) {
       "https://overpass-api.de/api/interpreter",
       "https://overpass.kumi.systems/api/interpreter",
       "https://overpass.private.coffee/api/interpreter",
+      "https://overpass.nchc.org.tw/api/interpreter",
+      "https://overpass.openstreetmap.ru/api/interpreter",
+      "https://overpass.osm.ch/api/interpreter",
+      "https://overpass.osm.jp/api/interpreter",
     ]) {
       try {
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "content-type": "application/x-www-form-urlencoded", "user-agent": "AmalaBusinessResearch/3.0" },
           body: new URLSearchParams({ data: query }),
-          signal: AbortSignal.timeout(45_000),
+          signal: AbortSignal.timeout(30_000),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         payload = await response.json();

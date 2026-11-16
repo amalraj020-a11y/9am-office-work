@@ -35,3 +35,4 @@
 {"runId": "2026-11-15-2100", "gmailDelivery": "BLOCKED"}
 {"runId":"2026-11-16-0900","status":"PASS","business":"Doorstep Fix","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-16-0900/report.md"}
 {"runId": "2026-11-16-0900", "gmailDelivery": "BLOCKED"}
+{"runId":"2026-11-16-2100","status":"PASS","business":"Shuchi Laundry","modelUsed":"qwen3:4b","tests":3,"report":"runs/2026-11-16-2100/report.md"}

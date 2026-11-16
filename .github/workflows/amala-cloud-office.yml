@@ -7,6 +7,11 @@ on:
         description: Run slot recorded in the report
         required: true
         default: manual
+      delivery_only:
+        description: Deliver an existing report without repeating research or development
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -24,6 +29,7 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
+        if: ${{ !inputs.delivery_only }}
         with:
           node-version: "22"
       - uses: actions/setup-python@v5
@@ -34,6 +40,7 @@ jobs:
           git config user.name "Amala Office Employee"
           git config user.email "amalaraj020@gmail.com"
       - name: Start Ollama
+        if: ${{ !inputs.delivery_only }}
         run: |
           curl -fsSL https://ollama.com/install.sh | sh
           nohup ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
@@ -43,14 +50,17 @@ jobs:
           done
           curl -fsS http://127.0.0.1:11434/api/tags
       - name: Load free local models
+        if: ${{ !inputs.delivery_only }}
         run: |
           ollama pull qwen3:4b
           ollama pull gemma3:1b
       - name: Verify OpenClaw
+        if: ${{ !inputs.delivery_only }}
         run: |
           npm install --global openclaw
           openclaw --version
       - name: Run Amala office workflow
+        if: ${{ !inputs.delivery_only }}
         env:
           AMALA_SLOT: ${{ inputs.slot }}
         run: node amala_office.mjs

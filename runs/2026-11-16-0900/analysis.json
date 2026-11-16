@@ -1,0 +1,27 @@
+{
+  "runId": "2026-11-16-0900",
+  "business": {
+    "name": "Doorstep Fix",
+    "url": "https://doorstepfix.com/",
+    "email": "mansoor@doorstepfix.com",
+    "identity": [
+      "doorstep fix",
+      "repair"
+    ],
+    "hypothesis": "Home-service requests may require manual triage by appliance or trade, location, urgency, warranty need, and preferred visit time."
+  },
+  "modelUsed": "qwen3:4b",
+  "modelErrors": [],
+  "sourceFailures": [
+    "GoCaters: already processed"
+  ],
+  "analysis": {
+    "problem_hypothesis": "Home-service requests may require manual triage by appliance or trade, location, urgency, warranty need, and preferred visit time. This is a hypothesis to validate with the business.",
+    "solution": "An AI-assisted enquiry qualification workflow that extracts the request type, location, urgency, and missing fields, then produces a structured lead and draft follow-up.",
+    "inputs": "Public website enquiry or booking text, customer name and contact details, requested service, location, and preferred date or slot.",
+    "processing": "Validate required fields, classify intent and urgency, extract service and location, detect missing information, and route the enquiry for follow-up.",
+    "outputs": "A structured lead record, priority score, missing-information checklist, routing suggestion, and draft response for review.",
+    "business_value": "Less manual triage, faster follow-up, more consistent records, and fewer incomplete bookings.",
+    "model_quality_note": "qwen3:4b omitted required fields; the evidence-based baseline was used."
+  }
+}

@@ -36,12 +36,16 @@ REPOS = {
 
 
 def api(path: str):
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "AmalaOpenClawManager/1.0",
+    }
+    github_token = os.getenv("GITHUB_TOKEN", "").strip()
+    if github_token:
+        headers["Authorization"] = f"Bearer {github_token}"
     request = urllib.request.Request(
         "https://api.github.com" + path,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "User-Agent": "AmalaOpenClawManager/1.0",
-        },
+        headers=headers,
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         return json.load(response)

@@ -66,18 +66,26 @@ jobs:
         if: ${{ !inputs.delivery_only }}
         env:
           AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
+          AMALA_SCHEDULE: ${{ github.event.schedule }}
         run: node amala_office.mjs
       - name: Deliver verified Gmail outreach and owner report
         env:
           AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
+          AMALA_SCHEDULE: ${{ github.event.schedule }}
           GMAIL_ADDRESS: ${{ secrets.AMALA_GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.AMALA_GMAIL_APP_PASSWORD }}
         run: python cloud/gmail/send_report.py
       - name: Save Gmail delivery evidence
         env:
           AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
+          AMALA_SCHEDULE: ${{ github.event.schedule }}
         run: |
           DAY="$(TZ=Asia/Kolkata date +%F)"
+          TARGET_HOUR=-1
+          if [[ "$AMALA_SCHEDULE" == "30 3 * * *" ]]; then TARGET_HOUR=9; fi
+          if [[ "$AMALA_SCHEDULE" == "30 15 * * *" ]]; then TARGET_HOUR=21; fi
+          CURRENT_HOUR="$(TZ=Asia/Kolkata date +%H)"
+          if [[ "$TARGET_HOUR" -ge 0 && "$CURRENT_HOUR" -lt "$TARGET_HOUR" ]]; then DAY="$(TZ=Asia/Kolkata date -d yesterday +%F)"; fi
           git add -- "runs/$DAY-${AMALA_SLOT}/delivery.json" run-log.jsonl
           if ! git diff --cached --quiet; then
             git commit -m "Record Amala Gmail delivery $DAY-${AMALA_SLOT}"

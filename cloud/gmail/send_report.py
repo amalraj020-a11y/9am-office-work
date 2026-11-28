@@ -11,7 +11,7 @@ import ssl
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -19,7 +19,16 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[2]
 SLOT = re.sub(r"[^a-zA-Z0-9_-]", "-", os.getenv("AMALA_SLOT", "manual"))
-DAY = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d")
+def scheduled_day() -> str:
+    now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    schedule = os.getenv("AMALA_SCHEDULE", "").strip()
+    hour = {"30 3 * * *": 9, "30 15 * * *": 21}.get(schedule)
+    if hour is not None and now.hour < hour:
+        now -= timedelta(days=1)
+    return now.strftime("%Y-%m-%d")
+
+
+DAY = scheduled_day()
 RUN_ID = f"{DAY}-{SLOT}"
 RUN_DIR = ROOT / "runs" / RUN_ID
 REPORT_PATH = RUN_DIR / "report.md"

@@ -165,6 +165,14 @@ def main() -> None:
         return
 
     report = REPORT_PATH.read_text(encoding="utf-8")
+    if "- Status: NO_NEW_VERIFIED_BUSINESS" in report:
+        save_result({
+            "status": "NO_NEW_VERIFIED_BUSINESS",
+            "outreach": "NOT_SENT",
+            "reason": "No new independently verified business remained; repeat outreach was blocked.",
+        })
+        print("Gmail delivery skipped: no new independently verified business; no client email sent")
+        return
     business = report_field(report, "Business")
     official_source = report_field(report, "Official source")
     recipient = report_field(report, "Public email").lower()

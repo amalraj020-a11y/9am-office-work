@@ -246,7 +246,19 @@ async function main() {
   await mkdir(path.join(prototypeDir, "src"), { recursive: true });
   await mkdir(path.join(prototypeDir, "tests"), { recursive: true });
 
-  const { business, evidence, sourceFailures } = await selectBusiness(day);
+  let selection;
+  try {
+    selection = await selectBusiness(day);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.startsWith("No new verified business remained; refusing to repeat")) throw error;
+    await mkdir(runDir, { recursive: true });
+    const report = `# Amala Office Report — ${runId}\n\n- Status: NO_NEW_VERIFIED_BUSINESS\n- Business: None; every candidate was already processed or did not pass independent verification\n- Official source: none verified\n- Public email: not verified; no email may be sent\n- Model: not run\n- Tests: not run; no new prototype was created\n- Actual paid API cost: ₹0\n- Outreach: not sent; duplicate outreach is prohibited\n\n## Reason\n\n${error.message}\n`;
+    await writeFile(reportPath, report, "utf8");
+    await appendFile(path.join(HERE, "run-log.jsonl"), `${JSON.stringify({ runId, status: "NO_NEW_VERIFIED_BUSINESS", outreach: "NOT_SENT", report: `runs/${runId}/report.md` })}\n`, "utf8");
+    console.log(`Amala ${runId}: no new independently verified business; no outreach sent.`);
+    return;
+  }
+  const { business, evidence, sourceFailures } = selection;
   let analysis;
   let modelUsed;
   const modelErrors = [];

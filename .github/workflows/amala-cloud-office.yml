@@ -1,6 +1,9 @@
 name: Amala cloud office
 
 on:
+  schedule:
+    - cron: "30 3 * * *"
+    - cron: "30 15 * * *"
   workflow_dispatch:
     inputs:
       slot:
@@ -62,17 +65,17 @@ jobs:
       - name: Run Amala office workflow
         if: ${{ !inputs.delivery_only }}
         env:
-          AMALA_SLOT: ${{ inputs.slot }}
+          AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
         run: node amala_office.mjs
       - name: Deliver verified Gmail outreach and owner report
         env:
-          AMALA_SLOT: ${{ inputs.slot }}
+          AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
           GMAIL_ADDRESS: ${{ secrets.AMALA_GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.AMALA_GMAIL_APP_PASSWORD }}
         run: python cloud/gmail/send_report.py
       - name: Save Gmail delivery evidence
         env:
-          AMALA_SLOT: ${{ inputs.slot }}
+          AMALA_SLOT: ${{ inputs.slot || (github.event.schedule == '30 3 * * *' && '9am') || (github.event.schedule == '30 15 * * *' && '9pm') || 'manual' }}
         run: |
           DAY="$(TZ=Asia/Kolkata date +%F)"
           git add -- "runs/$DAY-${AMALA_SLOT}/delivery.json" run-log.jsonl

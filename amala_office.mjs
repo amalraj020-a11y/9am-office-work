@@ -235,8 +235,19 @@ function run(command, args, options = {}) {
   return result;
 }
 
+function scheduledDay() {
+  const schedule = process.env.AMALA_SCHEDULE || "";
+  const hourForSchedule = { "30 3 * * *": 9, "30 15 * * *": 21 }[schedule];
+  const now = new Date();
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+  if (hourForSchedule === undefined) return date;
+  const hour = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", hourCycle: "h23" }).format(now));
+  if (hour >= hourForSchedule) return date;
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day - 1)).toISOString().slice(0, 10);
+}
 async function main() {
-  const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const day = scheduledDay();
   const runId = `${day}-${SLOT}`;
   const runDir = path.join(HERE, "runs", runId);
   const reportPath = path.join(runDir, "report.md");
